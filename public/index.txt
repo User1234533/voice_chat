@@ -1,0 +1,120 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Mistral API Anfrage</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Frage die Mistral API</h1>
+        <input type="text" id="question" placeholder="Stelle deine Frage hier...">
+        <button id="askButton">Fragen</button>
+        <button id="voiceButton">Spracheingabe</button> <!-- Button für Spracheingabe -->
+        <div id="response"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+----
+
+// public/script.js
+let voices = []; // Array für die Stimmen
+
+// Stimmen abrufen, wenn die Seite geladen wird
+window.speechSynthesis.onvoiceschanged = () => {
+    voices = window.speechSynthesis.getVoices();
+    console.log('Verfügbare Stimmen:', voices); // Verfügbare Stimmen in der Konsole ausgeben
+};
+
+document.getElementById('askButton').addEventListener('click', async () => {
+    await handleQuestion();
+});
+
+// Spracheingabe
+document.getElementById('voiceButton').addEventListener('click', () => {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'de-DE'; // Sprache auf Deutsch setzen
+    recognition.interimResults = false;
+
+    recognition.onresult = async (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('question').value = 'Versuche deine Antwort so kurz und simpel wie möglich zu halten. Antworte nur auf Deutsch!' + transcript; // Erkannten Text ins Eingabefeld setzen
+        console.log('Erkannter Text:', transcript); // Erkannten Text in der Konsole ausgeben
+
+        // Automatisches Absenden der Frage
+        await handleQuestion();
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Fehler bei der Spracheingabe:', event.error);
+    };
+
+    recognition.start(); // Spracheingabe starten
+});
+
+// Funktion zum Verarbeiten der Frage
+async function handleQuestion() {
+    const question = document.getElementById('question').value;
+    const responseDiv = document.getElementById('response');
+
+    const messages = [
+        {
+            "role": "user",
+            "content": question,
+        }
+    ];
+
+    try {
+        const response = await fetch('/ask', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ messages }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const answer = data.choices[0].message.content; // Annahme, dass die Antwort in dieser Struktur kommt
+            responseDiv.innerText = answer; // Antwort auf der Seite anzeigen
+            console.log('Antwort von Mistral API:', answer); // Antwort in der Konsole ausgeben
+
+            // Text-to-Speech mit einer verfügbaren Stimme
+            const utterance = new SpeechSynthesisUtterance(answer);
+            utterance.lang = 'de-DE'; // Sprache auf Deutsch setzen
+
+            // Stimmen abrufen und die erste verfügbare Stimme auswählen
+            const selectedVoice = voices[3]; // Wähle die erste verfügbare Stimme
+            if (selectedVoice) {
+                utterance.voice = selectedVoice; // Die Stimme setzen
+                console.log('Verwendete Stimme:', selectedVoice.name); // Verwendete Stimme in der Konsole ausgeben
+            } else {
+                console.warn('Keine Stimme gefunden, es wird keine Sprachausgabe erfolgen.'); // Warnung, wenn keine Stimme gefunden wird
+            }
+
+            // Sprachausgabe starten
+            window.speechSynthesis.speak(utterance); // Antwort abspielen
+
+            // Event-Listener für das Ende der Sprachausgabe
+            utterance.onend = () => {
+                console.log('Sprachausgabe beendet.');
+            };
+
+            // Event-Listener für Fehler bei der Sprachausgabe
+            utterance.onerror = (event) => {
+                console.error('Fehler bei der Sprachausgabe:', event.error);
+            };
+        } else {
+            responseDiv.innerText = 'Fehler bei der Anfrage an die Mistral API';
+            console.error('Fehler bei der Anfrage:', response.statusText); // Fehler in der Konsole ausgeben
+        }
+    } catch (error) {
+        responseDiv.innerText = 'Fehler bei der Anfrage an die Mistral API';
+        console.error('Fehler:', error); // Fehler in der Konsole ausgeben
+    }
+}

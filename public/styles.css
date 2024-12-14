@@ -1,0 +1,54 @@
+/* public/styles.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex; /* Flexbox aktivieren */
+    justify-content: center; /* Horizontale Zentrierung */
+    align-items: center; /* Vertikale Zentrierung */
+    height: 100vh; /* Höhe des Viewports */
+}
+
+.container {
+    width: 600px;
+    padding: 50px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center; /* Zentriert den Inhalt */
+}
+
+h1 {
+    margin-bottom: 20px; /* Abstand unter dem Titel */
+}
+
+.circle-button {
+    width: 100px; /* Breite des Buttons */
+    height: 100px; /* Höhe des Buttons */
+    border-radius: 50%; /* Macht den Button rund */
+    background-color: #b400a5; /* Hintergrundfarbe */
+    color: white; /* Textfarbe */
+    border: none; /* Kein Rand */
+    font-size: 24px; /* Größe des Icons */
+    cursor: pointer; /* Zeigt den Cursor als Hand */
+    display: flex; /* Flexbox für zentriertes Icon */
+    align-items: center; /* Vertikale Zentrierung */
+    justify-content: center; /* Horizontale Zentrierung */
+    transition: background-color 0.3s; /* Übergangseffekt */
+    margin-left: 50%;
+    transform: translate(-50%);
+}
+
+.circle-button:hover {
+    background-color: #700067; /* Dunklere Farbe beim Hover */
+}
+
+.circle-button i {
+    margin: 0; /* Kein Abstand um das Icon */
+}
+
+/* Neue Klasse für das Kreuz-Icon */
+.cross-icon {
+    display: none; /* Standardmäßig versteckt */
+}
